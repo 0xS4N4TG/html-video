@@ -14,6 +14,7 @@ import {
 } from '@html-video/core';
 import hfAdapter from '@html-video/adapter-hyperframes';
 import remotionAdapter, { remotionInstalled } from '@html-video/adapter-remotion';
+import kinetographAdapter, { kinetographInstalled } from '@html-video/adapter-kinetograph';
 import { MediaConfigStore } from './media-config.js';
 
 export interface CliContext {
@@ -61,6 +62,10 @@ export async function bootstrap(opts: { cwd?: string } = {}): Promise<CliContext
   // registry never lists an engine that would throw on render. (RFC-08)
   if (remotionInstalled()) {
     engines.register(remotionAdapter);
+  }
+  // Same for Kinetograph: an optional peer dependency, listed only when it resolves.
+  if (kinetographInstalled()) {
+    engines.register(kinetographAdapter);
   }
 
   const templates = new TemplateRegistry();

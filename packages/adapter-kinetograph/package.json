@@ -1,0 +1,33 @@
+{
+  "name": "@html-video/adapter-kinetograph",
+  "version": "0.1.0",
+  "description": "Kinetograph adapter for html-video: renders HTML + CSS + GSAP frames to video with a GPU renderer, no browser. kinetograph is an optional peer dependency.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test \"test/**/*.test.mjs\""
+  },
+  "dependencies": {
+    "@html-video/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "kinetograph": ">=0.4.0-rc.1"
+  },
+  "peerDependenciesMeta": {
+    "kinetograph": { "optional": true }
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}
