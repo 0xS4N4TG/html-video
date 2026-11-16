@@ -1,7 +1,7 @@
 // The adapter against a fake kinetograph CLI: interface mapping, validate, error and abort paths.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -160,4 +160,27 @@ test('KINETOGRAPH_ALLOW_HOST runs fetch-deps with --allow-host before render and
   Reflect.deleteProperty(process.env, 'KINETOGRAPH_ALLOW_HOST');
   const doctorNames = calls().map((a) => a[0]);
   assert.ok(doctorNames.indexOf('fetch-deps') < doctorNames.indexOf('doctor'));
+});
+
+test('does not run a kinetograph found in the working directory', async () => {
+  const { resolveKinetographBin } = await import('../dist/cli.js');
+  const cwd = mkdtempSync(join(tmpdir(), 'hv-kinetograph-cwd-'));
+  const pkg = join(cwd, 'node_modules', 'kinetograph', 'dist');
+  mkdirSync(pkg, { recursive: true });
+  writeFileSync(join(pkg, 'index.js'), 'module.exports = {};');
+  writeFileSync(join(pkg, 'cli.js'), 'process.exit(0);');
+  writeFileSync(
+    join(cwd, 'node_modules', 'kinetograph', 'package.json'),
+    '{"name":"kinetograph","main":"dist/index.js"}',
+  );
+  const before = process.cwd();
+  Reflect.deleteProperty(process.env, 'KINETOGRAPH_BIN');
+  process.chdir(cwd);
+  try {
+    const bin = resolveKinetographBin();
+    assert.ok(bin === null || !bin.startsWith(cwd), `resolved ${bin}`);
+  } finally {
+    process.chdir(before);
+    rmSync(cwd, { recursive: true, force: true });
+  }
 });

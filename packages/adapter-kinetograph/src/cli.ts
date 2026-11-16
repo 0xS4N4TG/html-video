@@ -7,20 +7,20 @@ import { HtmlVideoError } from '@html-video/core';
 export const INSTALL_HINT =
   'Install kinetograph to use this engine: `pnpm add kinetograph` in the workspace root (or set KINETOGRAPH_BIN to its cli.js).';
 
-/** The kinetograph CLI script, looked up at run time: KINETOGRAPH_BIN, then the cwd, then this package. */
+/**
+ * The kinetograph CLI script, looked up at run time: KINETOGRAPH_BIN (explicit opt-in), then
+ * this package's own resolution, as the Remotion and Hyperframes adapters find their engines.
+ * The working directory is not searched, so a stray node_modules there is never executed.
+ */
 export function resolveKinetographBin(): string | null {
   const override = process.env.KINETOGRAPH_BIN;
   if (override) return existsSync(override) ? override : null;
-  for (const from of [join(process.cwd(), 'noop.js'), import.meta.url]) {
-    try {
-      const main = createRequire(from).resolve('kinetograph');
-      const bin = join(dirname(main), 'cli.js');
-      if (existsSync(bin)) return bin;
-    } catch {
-      // not resolvable from here
-    }
+  try {
+    const bin = join(dirname(createRequire(import.meta.url).resolve('kinetograph')), 'cli.js');
+    return existsSync(bin) ? bin : null;
+  } catch {
+    return null;
   }
-  return null;
 }
 
 export function kinetographInstalled(): boolean {
